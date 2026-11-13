@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pi · tldraw</title>
+  <style>
+    * { box-sizing: border-box } body { margin: 0; font: 14px system-ui; background: #fafafa; color: #242424 }
+    header { height: 48px; display: flex; align-items: center; gap: 20px; padding: 0 20px; border-bottom: 1px solid #ddd }
+    #status { color: #666 } #error { color: #b42318; padding: 12px; white-space: pre-wrap }
+    iframe { display: block; width: 100%; height: calc(100dvh - 48px); border: 0; background: white }
+    button { margin-left: auto; cursor: pointer }
+  </style>
+</head>
+<body>
+  <header><strong>Pi · tldraw</strong><span id="status" role="status">Connecting…</span><button id="reload">Reconnect</button></header>
+  <div id="error" role="alert" hidden></div>
+  <iframe id="canvas" title="Interactive tldraw canvas" sandbox="allow-scripts allow-downloads" allow="clipboard-write"></iframe>
+  <script type="module" src="/host.js"></script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "name": "pi-tldraw",
+  "version": "0.1.0",
+  "description": "A lightweight tldraw MCP App host for Pi and T3 Code",
+  "author": { "name": "zeekrey", "url": "https://github.com/zeekrey" },
+  "repository": { "type": "git", "url": "git+https://github.com/zeekrey/pi-tldraw.git" },
+  "homepage": "https://github.com/zeekrey/pi-tldraw#readme",
+  "bugs": { "url": "https://github.com/zeekrey/pi-tldraw/issues" },
+  "type": "module",
+  "license": "MIT",
+  "keywords": ["pi-package", "tldraw", "mcp", "t3code"],
+  "files": ["src", "assets", "README.md", "LICENSE", "CHANGELOG.md", "SECURITY.md"],
+  "pi": { "extensions": ["./src/index.ts"] },
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "test:package": "node scripts/package-smoke.mjs",
+    "check": "npm run typecheck && npm test && npm run test:package",
+    "test:live": "tsx test/live.ts"
+  },
+  "dependencies": { "@modelcontextprotocol/sdk": "^1.32.2" },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*", "typebox": "*" },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.5.0",
+    "@types/node": "^22.0.0",
+    "playwright": "^1.58.0",
+    "tsx": "^4.20.0",
+    "typebox": "^1.0.0",
+    "typescript": "^5.9.0"
+  }
+}
