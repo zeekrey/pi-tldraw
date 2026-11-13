@@ -1,6 +1,6 @@
 {
   "name": "pi-tldraw",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight tldraw MCP App host for Pi and T3 Code",
   "author": { "name": "zeekrey", "url": "https://github.com/zeekrey" },
   "repository": { "type": "git", "url": "git+https://github.com/zeekrey/pi-tldraw.git" },
@@ -14,6 +14,7 @@
   "engines": { "node": ">=22" },
   "scripts": {
     "test": "tsx --test test/*.test.ts",
+    "test:browser": "tsx --test test/*.browser.ts",
     "typecheck": "tsc --noEmit",
     "test:package": "node scripts/package-smoke.mjs",
     "check": "npm run typecheck && npm test && npm run test:package",

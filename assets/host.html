@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Pi · tldraw</title>
   <style>
-    * { box-sizing: border-box } body { margin: 0; font: 14px system-ui; background: #fafafa; color: #242424 }
-    header { height: 48px; display: flex; align-items: center; gap: 20px; padding: 0 20px; border-bottom: 1px solid #ddd }
+    * { box-sizing: border-box } html { height: 100% }
+    body { margin: 0; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; font: 14px system-ui; background: #fafafa; color: #242424 }
+    header { flex: 0 0 48px; display: flex; align-items: center; gap: 20px; padding: 0 20px; border-bottom: 1px solid #ddd }
     #status { color: #666 } #error { color: #b42318; padding: 12px; white-space: pre-wrap }
-    iframe { display: block; width: 100%; height: calc(100dvh - 48px); border: 0; background: white }
+    iframe { display: block; flex: 1 1 0; min-height: 0; width: 100%; border: 0; background: white }
     button { margin-left: auto; cursor: pointer }
   </style>
 </head>

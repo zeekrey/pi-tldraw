@@ -6,6 +6,9 @@ const errorBox = document.querySelector('#error')
 document.querySelector('#reload').onclick = () => location.reload()
 let initialized = false
 let widgetLoaded = false
+let displayMode = 'fullscreen'
+let lastContext = ''
+let contextFrame = 0
 
 async function api(path, body) {
   const res = await fetch(`/api/${path}`, {
@@ -26,9 +29,21 @@ function notify(method, params) { send({ method, params }) }
 
 const hostContext = () => ({
   theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-  displayMode: 'inline', availableDisplayModes: ['inline'], platform: 'web',
+  displayMode, availableDisplayModes: ['inline', 'fullscreen'], platform: 'web',
   containerDimensions: { width: frame.clientWidth, height: frame.clientHeight },
 })
+
+function scheduleHostContext() {
+  if (!initialized || contextFrame) return
+  contextFrame = requestAnimationFrame(() => {
+    contextFrame = 0
+    const context = hostContext()
+    const key = JSON.stringify(context)
+    if (key === lastContext) return
+    lastContext = key
+    notify('ui/notifications/host-context-changed', context)
+  })
+}
 
 window.addEventListener('message', async event => {
   if (event.source !== frame.contentWindow || !widgetLoaded) return
@@ -41,7 +56,7 @@ window.addEventListener('message', async event => {
       case 'ui/initialize':
         reply({
           protocolVersion: params.protocolVersion,
-          hostInfo: { name: 'pi-tldraw', version: '0.1.0' },
+          hostInfo: { name: 'pi-tldraw', version: '0.1.1' },
           hostCapabilities: { serverTools: {}, updateModelContext: {}, message: { text: {} }, downloadFile: {} },
           hostContext: hostContext(),
         })
@@ -50,6 +65,7 @@ window.addEventListener('message', async event => {
         initialized = true
         await api('ready', {})
         status.textContent = 'Ready · shared with Pi'
+        scheduleHostContext()
         break
       case 'tools/call':
         reply(await api('tool', params))
@@ -65,8 +81,17 @@ window.addEventListener('message', async event => {
         reply({})
         break
       }
-      case 'ui/request-display-mode': reply({ mode: 'inline' }); break
-      case 'ui/notifications/size-changed': break // Canvas fills the available pane.
+      case 'ui/request-display-mode':
+        if (!['inline', 'fullscreen'].includes(params.mode)) throw new Error('Unsupported display mode')
+        displayMode = params.mode
+        reply({ mode: displayMode })
+        scheduleHostContext()
+        break
+      case 'ui/notifications/size-changed':
+        // The dedicated page owns its dimensions. App hints (e.g. its inline 600px
+        // height) must not shrink the iframe or create a resize feedback loop.
+        scheduleHostContext()
+        break
       case 'ui/download-file': {
         for (const item of params.contents ?? []) {
           const bytes = item.blob ? Uint8Array.from(atob(item.blob), c => c.charCodeAt(0)) : item.text ?? ''
@@ -87,9 +112,10 @@ window.addEventListener('message', async event => {
   }
 })
 
-window.addEventListener('resize', () => {
-  if (initialized) notify('ui/notifications/host-context-changed', hostContext())
-})
+// A sidebar/pane can resize the iframe without a window.resize event.
+new ResizeObserver(scheduleHostContext).observe(frame)
+window.addEventListener('resize', scheduleHostContext)
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', scheduleHostContext)
 
 async function start() {
   if (!token) throw new Error('Open the full URL from Pi, including its #fragment.')

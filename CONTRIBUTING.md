@@ -17,10 +17,11 @@ Pi loads the TypeScript entry point directly. For a terminal test, use `pi -e "$
 
 `npm run check` runs TypeScript checks, deterministic tests, and a clean production tarball test loaded into Pi's real RPC runtime. The package smoke test requires npm and tar, installs production dependencies into a temporary directory, and makes no model or tldraw MCP requests. It does not touch your Pi settings or drawings.
 
-For the opt-in live test:
+For browser layout checks (offline) and the opt-in live test:
 
 ```sh
 npx playwright install chromium
+npm run test:browser
 npm run test:live
 ```
 
@@ -43,6 +44,6 @@ This contacts the configured MCP service, starts a headless Chromium browser, an
 4. Push the commit and tag, then create a GitHub release. A source install uses the tag; no npm publication is required.
 5. Optionally attach the distributable produced by `npm pack`.
 
-The CI workflow runs offline/package checks on Node 22 and 24. Its manual dispatch can additionally run the live test. Do not put credentials in a workflow or run live tests against a sensitive deployment.
+The CI workflow runs offline/package checks on Node 22 and 24 and a Chromium layout regression test on Node 22. Its manual dispatch can additionally run the live test. Do not put credentials in a workflow or run live tests against a sensitive deployment.
 
 Report ordinary bugs through GitHub issues. For security issues, follow [SECURITY.md](SECURITY.md).

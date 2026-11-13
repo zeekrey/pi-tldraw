@@ -133,7 +133,15 @@ export class CanvasHost {
       const encoded = Buffer.from(JSON.stringify(restore)).toString('base64')
       const headEnd = html.lastIndexOf('</head>')
       if (headEnd === -1) throw new Error('Widget has no closing head tag')
-      html = html.slice(0, headEnd) + `<script>Object.assign(window.__TLDRAW_BOOTSTRAP__ || (window.__TLDRAW_BOOTSTRAP__={}),JSON.parse(atob('${encoded}')))</script>` + html.slice(headEnd)
+      // Upstream's inline layout is fixed at 600px, and its fullscreen class can
+      // inherit that height. This dedicated host fills the iframe in either MCP
+      // display mode; scoped layout overrides leave tldraw's editor styles alone.
+      const sizing = `<style>
+html, body, #root { height: 100%; }
+.mcp-app__canvas-layout { height: 100%; min-height: 0; }
+.mcp-app__canvas-surface { height: auto; flex: 1; min-height: 0; }
+</style>`
+      html = html.slice(0, headEnd) + sizing + `<script>Object.assign(window.__TLDRAW_BOOTSTRAP__ || (window.__TLDRAW_BOOTSTRAP__={}),JSON.parse(atob('${encoded}')))</script>` + html.slice(headEnd)
       // Serve inline bundles as JS resources: minified template strings can contain HTML
       // comment/script delimiters that confuse the browser's inline-script parser.
       this.widgetScripts = []

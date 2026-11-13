@@ -24,7 +24,7 @@ It hosts the [official tldraw MCP App](https://tldraw.dev/blog/tldraw-mcp-app), 
 Requirements: **Node.js 22+**, [Pi](https://pi.dev) with the `@earendil-works/pi-coding-agent` extension API (tested against **1.5.0**), network access, and a browser. In T3 Code, use the **Pi provider**; other providers do not load Pi extensions.
 
 ```sh
-pi install git:github.com/zeekrey/pi-tldraw@v0.1.0
+pi install git:github.com/zeekrey/pi-tldraw@v0.1.1
 ```
 
 Pi installs the runtime dependency and loads the extension through the `pi.extensions` manifest. **No npm install, build step, MCP configuration, browser driver, or additional API key is needed.** Restart Pi or use `/reload`, then run `/tldraw`.
@@ -69,6 +69,8 @@ Start a fresh Pi thread in T3 Code after installation, or run `/reload` in an ex
 5. Move shapes, add notes, draw a sketch, or select a region. Then ask:
 
    > Read my changes in tldraw and update the plan. Only change the selected shapes.
+
+The dedicated browser page fills all available space below its header. It negotiates MCP fullscreen display mode by default (not browser/OS fullscreen) and tracks pane dimensions automatically, so resizing a T3 sidebar or browser window does not leave the editor capped at its inline height.
 
 The widget sends canvas context back to the extension. The latest changed context is attached to the next user-started agent run; `tldraw_scene` reads the live canvas when Pi needs the latest state during a run. Edits do **not** automatically start an agent turn. The app’s explicit send-message action can queue a follow-up prompt.
 
@@ -141,6 +143,7 @@ This is **not an offline editor**. It downloads and runs tldraw’s app and send
 
 - **No tools or `/tldraw`:** check the T3 provider, Pi binary/config directory, and project trust, then start a fresh thread.
 - **Not ready:** open the full URL; keep the tab open. Check the visible error message, network access to the MCP endpoint/CDN, and close duplicate canvas tabs.
+- **Canvas stops at about 600px:** v0.1.0 negotiates inline mode and inherits the upstream height cap. Upgrade to v0.1.1 or newer, `/reload` Pi, reopen `/tldraw`, and close the old tab. Refreshing an old host alone does not replace its running extension code.
 - **Disconnected after restart:** old URLs are intentionally invalidated. Run `/tldraw` again.
 - **An execution failed:** read the error; some upstream app errors tear down the editor. Reconnect/refresh the canvas, then inspect before retrying.
 - **Remote service unavailable or expired session:** `/reload` Pi and reopen the canvas. Local checkpoints can restore the drawing in a new MCP connection.
@@ -154,10 +157,17 @@ For an unpinned GitHub install, update with:
 pi update --extensions
 ```
 
-A tag is pinned: to upgrade a tagged install, remove that source and install the new release tag. Uninstall this release with:
+A tag is pinned: to upgrade from v0.1.0 to the full-height fix, run:
 
 ```sh
 pi remove git:github.com/zeekrey/pi-tldraw@v0.1.0
+pi install git:github.com/zeekrey/pi-tldraw@v0.1.1
+```
+
+Then `/reload` Pi and reopen `/tldraw`; close the old canvas tab. Uninstall this release with:
+
+```sh
+pi remove git:github.com/zeekrey/pi-tldraw@v0.1.1
 ```
 
 Restart Pi or run `/reload` afterward. Uninstalling does not delete your saved drawings; remove `.pi/tldraw/` manually if desired.
@@ -169,11 +179,12 @@ npm install
 npm run check               # typecheck + offline tests + production tarball/Pi RPC smoke test
 npm test                    # deterministic, offline host/security/protocol tests
 npx playwright install chromium
+npm run test:browser         # offline real-browser layout and MCP mode regression test
 npm run test:live            # opt-in: real app + Chromium + temporary isolated canvas
 npm pack --dry-run
 ```
 
-The live test checks API search, real widget initialization, create/read/edit/delete, manual freehand sketch feedback, app-context feedback, checkpointing, and restore across host/MCP restart. Tests never use your project’s drawings. The extension has no build step; Pi loads the TypeScript entry directly.
+The browser regression test checks tall and short panes, sidebar-style element resizing, inline/fullscreen switching, and resistance to app size-hint feedback loops without contacting the MCP service. The live test checks actual canvas dimensions, API search, real widget initialization, create/read/edit/delete, manual freehand sketch feedback, app-context feedback, checkpointing, and restore across host/MCP restart. Tests never use your project’s drawings. The extension has no build step; Pi loads the TypeScript entry directly.
 
 ## Contributing and support
 

@@ -13,12 +13,27 @@ const browser = await chromium.launch({ args: ['--no-sandbox'] })
 let host = new CanvasHost({ remote: new TldrawRemote(process.env.TLDRAW_MCP_URL), statePath })
 try {
   await host.start()
-  const page = await browser.newPage()
+  const page = await browser.newPage({ viewport: { width: 1000, height: 1400 } })
   page.on('response', async response => { if (response.status() >= 400) console.error('HTTP error:', response.url(), response.status(), (await response.text()).slice(0, 1000)) })
   page.on('pageerror', error => console.error('Browser error:', error.message))
   page.on('console', message => { if (message.type() === 'error') console.error('Console:', message.text().slice(0, 1000)) })
   await page.goto(host.url)
   await page.getByText('Ready · shared with Pi').waitFor({ timeout: 60_000 })
+  const appFrame = page.frames().find(frame => frame.url().includes('/widget/'))!
+  // The real upstream app must fill the viewport, not stop at its 600px inline cap.
+  for (const height of [1400, 480, 1600, 900]) {
+    await page.setViewportSize({ width: 1000, height })
+    await appFrame.waitForFunction(expected => {
+      const bounds = document.querySelector('.tl-canvas')?.getBoundingClientRect()
+      return !!bounds && Math.abs(bounds.height - expected) <= 2
+    }, height - 48)
+    const iframe = await page.locator('#canvas').boundingBox()
+    const canvas = await page.frameLocator('#canvas').locator('.tl-canvas').boundingBox()
+    assert.ok(iframe && canvas)
+    assert.ok(Math.abs(canvas.height - iframe.height) <= 2)
+    assert.ok(Math.abs(canvas.width - iframe.width) <= 2)
+  }
+  console.log('Real canvas fills tall/short/resized panes')
   const search = await host.search('return Object.keys(spec)')
   assert.ok(!search.isError, JSON.stringify(search))
   console.log('API discovery passed')

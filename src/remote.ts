@@ -13,7 +13,7 @@ export interface Remote {
 
 /** One MCP connection shared by the model and widget callbacks. Never retry mutations. */
 export class TldrawRemote implements Remote {
-  private client = new Client({ name: 'pi-tldraw', version: '0.1.0' }, {
+  private client = new Client({ name: 'pi-tldraw', version: '0.1.1' }, {
     capabilities: { extensions: { 'io.modelcontextprotocol/ui': { mimeTypes: ['text/html;profile=mcp-app'] } } },
   })
   private connecting?: Promise<void>
